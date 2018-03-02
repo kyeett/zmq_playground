@@ -5,3 +5,4 @@
 
 ### Todo
 1. Make c++ auto-complete work for Sublime
+2. Need lock for adding to queue?
