@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import zmq, json, time
 
 def main():
@@ -5,7 +6,7 @@ def main():
     publisher = context.socket(zmq.PUB)
     publisher.connect("ipc:///tmp/test")
     while True:
-        publisher.send( "hello world" )
+        publisher.send_string( "hello world2" )
         time.sleep( 1 )
 
 if __name__ == "__main__":

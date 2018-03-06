@@ -3,56 +3,72 @@
 #include <thread>
 #include <unistd.h>
 #include <queue>          // std::queue
+#include <mutex>
+#include <time.h>
+
+#define NUM_MESSAGES 5
 
 using namespace std;
+
+mutex g_pages_mutex;
 
 struct message_t {
     int     i;
     string  s;
 };
 
-struct dog_t {
-    int     age;
-    string  name;
+
+class Doggo
+{
+public:
+    Doggo(string name, queue<message_t> q);
+    ~Doggo();
+    void main_dog_loop();
+    string name;
+    static mutex dog_mutex;
+    queue<message_t> message_queue;
 };
 
-void printdog (dog_t dog) {
-    cout << "The dog '" << dog.name << "' is " << dog.age << " years old\n";
-    cout << "The dog '" << random() % 2 << "\n";
+Doggo::Doggo(string name, queue<message_t> q) {
+    this->name = name;
+    this->message_queue = q;
+}
+
+Doggo::~Doggo() {};
+
+void Doggo::main_dog_loop() {
+    cout << "Take lock";
+    lock_guard<mutex> guard(Doggo);
+    cout << "Take lock";
+}
+
+void add_msg(message_t msg, queue<message_t> &message_queue) {
+    lock_guard<mutex> guard(g_pages_mutex);
+    message_queue.push(msg);
 }
 
 void print_message(message_t msg) {
 
-    cout << "This message: s=" << msg.s << ", i=" << msg.i << "\n";
-}
-
-// The function we want to execute on the new thread.
-// void task1(string msg, int period)
-void task1(int age, string name, queue<dog_t> &thisqueue)
-{
-    cout << "Task given to dog"  << name << "\n";
-    dog_t new_dog;
-    new_dog.age = age;
-    new_dog.name = name;
-
-    for (int i = 0; i < 3; ++i) {
-        new_dog.age = age + i;
-        thisqueue.push(new_dog);
+    if(msg.s != "") {
+        cout << msg.s << "\n";
+    }
+    else {
+        cout << msg.i << "\n";
     }
 }
 
 
 void message_generator(string message, queue<message_t> &message_queue)
 {
-    for (int j = 0; j < 3; ++j) {
+    for (int j = 0; j < NUM_MESSAGES; ++j) {
 
-        if (random() % 2) {
+        if (random() % 2 == 0) {
             //Add message with integer
             int rnd = random() % 10;
-            message_queue.push(message_t{ .i=rnd });
+            add_msg(message_t{ .i=rnd }, message_queue);
         } else {
             // Add message with string
-            message_queue.push(message_t{ .s=message });
+            add_msg(message_t{ .s=message }, message_queue);
         }
     }
 }
@@ -60,8 +76,9 @@ void message_generator(string message, queue<message_t> &message_queue)
 
 int main()
 {
-    dog_t dog_holder;
-    queue<dog_t> myqueue;
+    srand(time(0));
+
+
     queue<message_t> message_queue;
 
     thread msger1(message_generator, "sync_func",      ref(message_queue));
@@ -76,4 +93,6 @@ int main()
         print_message(message_queue.front());
         message_queue.pop();
     }
+    Doggo d1 = Doggo("magnus", message_queue);
+    thread dog(message_generator, "traffic_func",   ref(message_queue));
 }
