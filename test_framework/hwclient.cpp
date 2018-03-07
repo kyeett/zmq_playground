@@ -7,6 +7,23 @@
 #include <string>
 #include <iostream>
 
+using namespace std;
+
+bool is_integer(string s) {
+
+    char *end;
+    long i = strtol( s.c_str(), &end, 10 );
+    if ( *end == '\0' )
+    {
+        return true;// Success
+    }
+    else
+    {
+        return false;// Failure
+    }
+}
+
+
 int main ()
 {
     //  Prepare our context and socket
@@ -26,6 +43,13 @@ int main ()
         //  Get the reply.
         zmq::message_t reply;
         socket.recv (&reply);
+        if (is_integer(std::string(static_cast<char*>(reply.data()), reply.size()))) {
+            printf("Integer! \n");
+        }
+        else {
+            printf("String! \n");
+
+        }
         printf ("Received Word \"%s\"\n", std::string(static_cast<char*>(reply.data()), reply.size()).c_str());
         printf ("Received Word %zu bytes: \"%s\"\n", reply.size(), reply.data());
         // std::cout << "Received World " << request_nbr << std::endl;
