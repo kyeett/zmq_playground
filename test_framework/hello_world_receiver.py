@@ -1,25 +1,29 @@
-import time
+from threading import Thread
 import zmq
 
 hello_port = "5556"
 world_port = "5557"
 
 
-context = zmq.Context()
-context_2 = zmq.Context()
-hello_socket = context.socket(zmq.PAIR)
-world_socket = context_2.socket(zmq.PAIR)
+def receiver(name, port):
+    context = zmq.Context()
+    socket = context.socket(zmq.PAIR)
+    socket.bind("tcp://*:%s" % port)
 
-hello_socket.bind("tcp://*:%s" % hello_port)
-world_socket.bind("tcp://*:%s" % world_port)
-
+    while(True):
+        message = socket.recv()
+        print("Received message from %s: %s" % (name, message))
 
 
 while True:
 
-    #  Wait for next request from client
-    message = hello_socket.recv()
-    print("Received message from %s: %s" % ("hello", message))
+    t1 = Thread(target=receiver, kwargs={"name": "hello", "port": hello_port})
+    t1.daemon = True
+    t1.start()
 
-    message = world_socket.recv()
-    print("Received message from %s: %s" % ("world", message))
+    t2 = Thread(target=receiver, kwargs={"name": "world", "port": world_port})
+    t2.daemon = True
+    t2.start()
+
+    t1.join()
+    t2.join()
