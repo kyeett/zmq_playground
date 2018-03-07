@@ -43,15 +43,18 @@ int main ()
         //  Get the reply.
         zmq::message_t reply;
         socket.recv (&reply);
-        if (is_integer(std::string(static_cast<char*>(reply.data()), reply.size()))) {
-            printf("Integer! \n");
+
+        // Turn into string
+        string received_string = std::string(static_cast<char*>(reply.data()), reply.size());
+        if (is_integer(received_string)) {
+            char *end;
+            printf ("Received Number %ld\n", strtol( received_string.c_str(), &end, 10 ));
         }
         else {
-            printf("String! \n");
+            printf ("Received Word \"%s\"\n", received_string.c_str());
+    //        printf("String! \n");
 
         }
-        printf ("Received Word \"%s\"\n", std::string(static_cast<char*>(reply.data()), reply.size()).c_str());
-        printf ("Received Word %zu bytes: \"%s\"\n", reply.size(), reply.data());
         // std::cout << "Received World " << request_nbr << std::endl;
     }
     return 0;
